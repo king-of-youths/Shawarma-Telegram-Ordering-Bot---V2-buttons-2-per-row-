@@ -1,0 +1,1981 @@
+{
+  "name": "Shawarma Telegram Ordering Bot - V2 (buttons, 2 per row)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "id": "2bf105e4-125c-40ef-853a-e6640adc082b",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "c29b3c65-c956-4a29-bd5a-08ac390cee6e",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const update = $input.first().json;\nlet m, from, text, callbackId = '', callbackState = '';\n\nif (update.callback_query) {\n  // customer tapped a button\n  const cq = update.callback_query;\n  m = cq.message || {};\n  from = cq.from || {};\n  const parts = String(cq.data || '').split('|');          // \"STATE|value\"\n  callbackState = parts.length > 1 ? parts[0] : '';\n  text = parts.length > 1 ? parts.slice(1).join('|') : parts[0];\n  callbackId = String(cq.id || '');\n} else {\n  // customer typed a message\n  m = update.message || {};\n  from = m.from || {};\n  text = m.text || '';\n}\n\ntext = String(text || '').trim();\nreturn [{\n  json: {\n    chatId: m.chat ? m.chat.id : (from.id || null),\n    userId: String(from.id || ''),\n    username: from.username ? '@' + from.username : '',\n    firstName: from.first_name || '',\n    text: text,\n    hasText: text !== '',\n    callbackId: callbackId,\n    callbackState: callbackState\n  }\n}];"
+      },
+      "id": "4059643d-4e99-4bc5-a60a-6923a1398be8",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5faae64-cd15-4a3e-8625-8a0f42b5e8be",
+              "name": "spreadsheetId",
+              "value": "1sJo92MjXz6vPGtTjv_M8oNRTpv_4tg2KoGd0DFawImE",
+              "type": "string"
+            },
+            {
+              "id": "4a970498-2319-4333-a62a-05f2201a6c96",
+              "name": "businessName",
+              "value": "De BIG JOINT Shawarma",
+              "type": "string"
+            },
+            {
+              "id": "83de42ec-c3ee-4ac1-a9b9-2fda23663ef9",
+              "name": "phone",
+              "value": "080XXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "ec83c67d-df3c-4f84-a6ec-b97550490d1e",
+              "name": "whatsapp",
+              "value": "080XXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "bdbd9860-7a7e-4a0b-a55a-406cc431cda3",
+              "name": "businessHours",
+              "value": "Monday–Saturday\n9:00 AM – 9:00 PM",
+              "type": "string"
+            },
+            {
+              "id": "44352bc0-c2b7-4d91-925c-93df2d8ae1a6",
+              "name": "deliveryFees",
+              "value": "Within 5km — ₦1,000\n5–10km — ₦1,500\n10km+ — Contact us",
+              "type": "string"
+            },
+            {
+              "id": "c3113f40-7375-40ab-ab59-392f32357d03",
+              "name": "deliveryTime",
+              "value": "30–60 minutes",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "ba049ea3-d625-45b4-9987-a7e21f19cda1",
+      "name": "Business Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sessions",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "c2a54f88-560a-48b7-8d1b-be0f84846686",
+      "name": "Read Session",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        300
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Menu",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "cfd1b24a-ae9c-47af-9759-aa91e1ef1f1e",
+      "name": "Read Menu",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        300
+      ],
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PROCESS MESSAGE  -  the \"brain\" of the bot (state machine)  [V2: with buttons]\n// Input : customer message + session row + menu rows\n// Output: reply text, new state, new draft, and an \"action\"\n//         action = reply | lookup_order | place_order\n// =====================================================\nconst cfg = $('Business Config').first().json;\nconst msg = $('Normalize Input').first().json;\nconst sessRow = $('Read Session').all().map(i => i.json).find(j => j['Telegram User ID'] !== undefined && String(j['Telegram User ID']) === String(msg.userId));\nconst menu = $('Read Menu').all().map(i => i.json).filter(r => r['Product ID']);\n\nconst MAX_QTY = 20;\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst money = n => '₦' + Number(n).toLocaleString('en-US');\nconst numEmoji = i => (['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][i] || (i + 1) + '.');\nconst lc = s => String(s == null ? '' : s).trim().toLowerCase();\nconst priceOf = r => Number(String(r['Price']).replace(/[^0-9.]/g, ''));\n\n// Only products marked Available = Yes with a valid price can be offered\nconst available = menu.filter(r => lc(r['Available']) === 'yes' && priceOf(r) > 0);\nconst products = available.filter(r => lc(r['Category']) === 'shawarma');\nconst extras   = available.filter(r => lc(r['Category']) === 'extra');\nconst drinks   = available.filter(r => lc(r['Category']) === 'drink');\n\n// ---- current session ----\nlet state = (sessRow && sessRow['State']) ? String(sessRow['State']).trim().toUpperCase() : 'MAIN_MENU';\nlet draft = {};\ntry { if (sessRow && sessRow['Draft Order']) draft = JSON.parse(sessRow['Draft Order']); } catch (e) { draft = {}; }\nif (!draft || typeof draft !== 'object') draft = {};\n\nlet reply = '';\nlet action = 'reply';\nlet order = null;\nlet lookupId = '';\nconst t = lc(msg.text);\nlet kb = 'auto';   // which button set to show (see buildButtons at the bottom)\n// A button tapped from an OLD message carries the state it was made for. If that no longer matches, ignore it.\nconst stale = !!(msg.callbackState && msg.callbackState !== state);\n\n// ---- text builders ----\nfunction mainMenuText() {\n  return 'Welcome to ' + esc(cfg.businessName) + ' 🌯\\nHow can I help you today?\\n\\n' +\n    '1️⃣ View Menu &amp; Prices\\n2️⃣ Place an Order\\n3️⃣ Check My Order\\n4️⃣ Delivery Information\\n5️⃣ Speak to Someone' +\n    '\\n\\nType a number or tap a button below. 👇';\n}\nfunction menuText() {\n  if (!available.length) return 'Sorry, our menu is not available right now. 😔';\n  return '🌯 <b>MENU</b>\\n\\n' + available.map(r => esc(r['Product']) + ' — ' + money(priceOf(r))).join('\\n') +\n    '\\n\\nType <b>2</b> to place an order, or tap a button below. 👇';\n}\nfunction deliveryText() {\n  return '🚚 <b>DELIVERY INFORMATION</b>\\n\\nWe offer delivery.\\n\\nDelivery fees:\\n' + esc(cfg.deliveryFees) +\n    '\\n\\nEstimated delivery time:\\n' + esc(cfg.deliveryTime) +\n    '\\n\\nWould you like to place an order?\\n\\n1️⃣ Yes\\n2️⃣ No\\n\\nType 1 or 2, or tap a button below. 👇';\n}\nfunction supportText() {\n  return '👤 <b>HUMAN SUPPORT</b>\\n\\nYou can contact our team:\\n📞 Phone: ' + esc(cfg.phone) +\n    '\\n💬 WhatsApp: ' + esc(cfg.whatsapp) + '\\n\\nBusiness Hours:\\n' + esc(cfg.businessHours) +\n    '\\n\\nYou can also leave a message and our team will get back to you.\\n\\nTap a button below, or type <b>hi</b> for the main menu.';\n}\nconst listText = list => list.map((r, i) => numEmoji(i) + ' ' + esc(r['Product']) + ' — ' + money(priceOf(r))).join('\\n');\nfunction extrasPrompt() {\n  return 'Would you like any extras?\\n\\n' + listText(extras) + '\\n' + numEmoji(extras.length) + ' No extras' +\n    '\\n\\nType your choice (you can pick more than one, e.g. <b>1,2</b>) or tap a button below. 👇';\n}\n\n// ---- helpers that change state ----\nfunction goMain(prefix) {\n  state = 'MAIN_MENU';\n  draft = {};\n  reply = (prefix ? prefix + '\\n\\n' : '') + mainMenuText();\n}\nfunction invalid(hint) {\n  reply = \"Sorry, I didn't understand that. 🙏\\nPlease choose one of the available options.\\n\\n\" + hint;\n}\nfunction pick(list, input) {\n  if (/^\\d+$/.test(input)) {\n    const n = parseInt(input, 10);\n    return (n >= 1 && n <= list.length) ? list[n - 1] : null;\n  }\n  return list.find(r => lc(r['Product']) === input) || null;\n}\nfunction startOrder() {\n  if (!products.length) { goMain('Sorry, we are not taking orders right now. 😔'); return; }\n  state = 'WAITING_FOR_PRODUCT';\n  draft = {};\n  reply = 'Great! 🌯\\nWhat would you like to order?\\n\\n' + listText(products) +\n    '\\n\\nType a number or tap a button below. 👇';\n}\nfunction askDrink() {\n  if (drinks.length) {\n    state = 'WAITING_FOR_DRINK';\n    draft.drinkId = drinks[0]['Product ID'];\n    reply = 'How many <b>' + esc(drinks[0]['Product']) + '</b> would you like? (' + money(priceOf(drinks[0])) +\n      ' each)\\n\\nType a number (0 for none) or tap a button below. 👇';\n  } else {\n    askOrderType();\n  }\n}\nfunction askOrderType() {\n  state = 'WAITING_FOR_ORDER_TYPE';\n  reply = 'Would you like delivery or pickup?\\n\\n1️⃣ Delivery\\n2️⃣ Pickup\\n\\nType 1 or 2, or tap a button below. 👇';\n}\n\n// Re-reads prices from the Menu sheet and calculates the total (never trusts the customer)\nfunction buildOrder(d) {\n  const find = id => available.find(r => String(r['Product ID']) === String(id));\n  const lines = [];\n  const p = find(d.productId);\n  if (!p) return { ok: false, message: 'Sorry, that item is no longer available. 😔 Please start your order again.' };\n  const qty = parseInt(d.qty, 10);\n  if (!(qty >= 1 && qty <= MAX_QTY)) return { ok: false, message: 'Sorry, the quantity was invalid. Please start your order again.' };\n  lines.push({ name: p['Product'], qty: qty, unit: priceOf(p), kind: 'item' });\n  for (const id of (d.extraIds || [])) {\n    const e = find(id);\n    if (!e) return { ok: false, message: 'Sorry, one of your extras is no longer available. 😔 Please start your order again.' };\n    lines.push({ name: e['Product'], qty: 1, unit: priceOf(e), kind: 'extra' });\n  }\n  const dq = parseInt(d.drinkQty || 0, 10);\n  if (dq > 0) {\n    const dr = find(d.drinkId);\n    if (!dr) return { ok: false, message: 'Sorry, the drink you picked is no longer available. 😔 Please start your order again.' };\n    lines.push({ name: dr['Product'], qty: dq, unit: priceOf(dr), kind: 'drink' });\n  }\n  lines.forEach(l => { l.sub = l.qty * l.unit; });\n  const total = lines.reduce((s, l) => s + l.sub, 0);\n  return { ok: true, lines: lines, total: total };\n}\nfunction showSummary() {\n  const b = buildOrder(draft);\n  if (!b.ok) { goMain(b.message); return; }\n  state = 'WAITING_FOR_ORDER_CONFIRMATION';\n  let details = '\\n\\nOrder type: <b>' + esc(draft.orderType) + '</b>\\nName: ' + esc(draft.name) + '\\nPhone: ' + esc(draft.phone);\n  if (draft.orderType === 'Delivery') {\n    details += '\\nAddress: ' + esc(draft.address) + '\\n<i>Delivery fee is charged separately based on distance.</i>';\n  }\n  reply = '📦 <b>ORDER SUMMARY</b>\\n\\n' +\n    b.lines.map(l => l.qty + ' × ' + esc(l.name) + ' — ' + money(l.sub)).join('\\n') +\n    '\\n\\n<b>Total: ' + money(b.total) + '</b>' + details +\n    '\\n\\nIs everything correct?\\n\\n1️⃣ ✅ Confirm\\n2️⃣ ❌ Cancel\\n\\nType 1 or 2, or tap a button below. 👇';\n}\n\n// =====================================================\n// ROUTER\n// =====================================================\nconst greetings = ['hi', 'hello', 'hey', 'hi there', '/start', 'start', 'home', 'main menu', '/menu'];\nconst mainMap = { '1': 'menu', '2': 'order', '3': 'check', '4': 'delivery', '5': 'support' };\nconst mainWords = {\n  'view menu': 'menu', 'menu': 'menu', 'prices': 'menu', 'view menu & prices': 'menu',\n  'place an order': 'order', 'place order': 'order', 'order': 'order',\n  'check my order': 'check', 'check order': 'check',\n  'delivery information': 'delivery', 'delivery': 'delivery',\n  'speak to someone': 'support', 'support': 'support', 'help': 'support', 'human': 'support'\n};\n\nif (stale) {\n  reply = 'That button is from an earlier step. 🙏\\nPlease use the buttons on the latest message, or type <b>hi</b> to start again.';\n} else if (!msg.hasText) {\n  // photo, sticker, voice note, etc.\n  reply = 'Sorry, I can only read text messages. 🙏\\nPlease type your reply.';\n} else if (greetings.includes(t)) {\n  goMain();\n} else if (t === 'cancel' || t === '/cancel') {\n  goMain('❌ Cancelled. Back to the main menu.');\n} else {\n  switch (state) {\n\n    case 'MAIN_MENU': {\n      const choice = mainMap[t] || mainWords[t];\n      if (choice === 'menu') { reply = menuText(); kb = 'after'; }\n      else if (choice === 'order') { startOrder(); }\n      else if (choice === 'check') {\n        state = 'WAITING_FOR_ORDER_ID';\n        reply = 'Please type your Order ID.\\nExample: <b>ORD-1025</b>\\n\\nOr tap Cancel below to go back.';\n      }\n      else if (choice === 'delivery') { state = 'WAITING_FOR_DELIVERY_CHOICE'; reply = deliveryText(); }\n      else if (choice === 'support') { reply = supportText(); kb = 'after'; }\n      else { invalid(mainMenuText()); }\n      break;\n    }\n\n    case 'WAITING_FOR_DELIVERY_CHOICE': {\n      if (t === '1' || t === 'yes' || t === 'y') { startOrder(); }\n      else if (t === '2' || t === 'no' || t === 'n') { goMain(); }\n      else { invalid('Reply <b>1</b> for Yes or <b>2</b> for No.'); }\n      break;\n    }\n\n    case 'WAITING_FOR_ORDER_ID': {\n      const id = String(msg.text).trim().toUpperCase();\n      if (!/^ORD-\\d{3,}$/.test(id)) {\n        reply = \"Sorry, that doesn't look like a valid Order ID.\\nIt should look like <b>ORD-1025</b>. Please try again, or type <b>cancel</b> to go back.\";\n      } else {\n        action = 'lookup_order';\n        lookupId = id;\n        state = 'MAIN_MENU';\n        draft = {};\n      }\n      break;\n    }\n\n    case 'WAITING_FOR_PRODUCT': {\n      const p = pick(products, t);\n      if (!p) { invalid(listText(products)); break; }\n      draft = { productId: p['Product ID'] };\n      state = 'WAITING_FOR_QUANTITY';\n      reply = 'How many <b>' + esc(p['Product']) + '</b> would you like? (1-' + MAX_QTY + ')\\n\\nType a number or tap a button below. 👇';\n      break;\n    }\n\n    case 'WAITING_FOR_QUANTITY': {\n      if (!/^\\d+$/.test(t) || parseInt(t, 10) < 1 || parseInt(t, 10) > MAX_QTY) {\n        reply = 'Please enter a valid quantity between 1 and ' + MAX_QTY + '.';\n        break;\n      }\n      draft.qty = parseInt(t, 10);\n      if (extras.length) { state = 'WAITING_FOR_EXTRA'; reply = extrasPrompt(); }\n      else { draft.extraIds = []; askDrink(); }\n      break;\n    }\n\n    case 'WAITING_FOR_EXTRA': {\n      const tokens = t.split(/[\\s,]+/).filter(Boolean);\n      const noneNo = String(extras.length + 1);\n      if (tokens.length === 1 && (tokens[0] === noneNo || ['0', 'no', 'none'].includes(tokens[0]))) {\n        draft.extraIds = [];\n        askDrink();\n        break;\n      }\n      const idx = tokens.map(x => /^\\d+$/.test(x) ? parseInt(x, 10) : NaN);\n      if (!idx.length || idx.some(n => isNaN(n) || n < 1 || n > extras.length)) {\n        invalid(extrasPrompt());\n        break;\n      }\n      draft.extraIds = [...new Set(idx)].map(n => extras[n - 1]['Product ID']);\n      askDrink();\n      break;\n    }\n\n    case 'WAITING_FOR_DRINK': {\n      if (!/^\\d+$/.test(t) || parseInt(t, 10) > MAX_QTY) {\n        reply = 'Please enter a number from 0 to ' + MAX_QTY + '.';\n        break;\n      }\n      draft.drinkQty = parseInt(t, 10);\n      askOrderType();\n      break;\n    }\n\n    case 'WAITING_FOR_ORDER_TYPE': {\n      if (t === '1' || t === 'delivery') draft.orderType = 'Delivery';\n      else if (t === '2' || t === 'pickup' || t === 'pick up') draft.orderType = 'Pickup';\n      else { invalid('1️⃣ Delivery\\n2️⃣ Pickup'); break; }\n      state = 'WAITING_FOR_NAME';\n      reply = 'Got it! 👍\\nWhat is your name?\\n\\nType your name, or tap Cancel below.';\n      break;\n    }\n\n    case 'WAITING_FOR_NAME': {\n      const name = String(msg.text).trim();\n      if (name.length < 2 || name.length > 60) { reply = 'Please enter your name (2 to 60 characters).'; break; }\n      draft.name = name;\n      state = 'WAITING_FOR_PHONE';\n      reply = 'Thanks, ' + esc(name) + '! 😊\\nWhat is your phone number?\\n\\nType it below, or tap Cancel.';\n      break;\n    }\n\n    case 'WAITING_FOR_PHONE': {\n      const phone = String(msg.text).replace(/[\\s\\-().]/g, '');\n      if (!/^\\+?\\d{10,15}$/.test(phone)) { reply = 'Please enter a valid phone number, e.g. 08012345678.'; break; }\n      draft.phone = phone;\n      if (draft.orderType === 'Delivery') {\n        state = 'WAITING_FOR_ADDRESS';\n        reply = 'Please type your full delivery address (house number, street, area).\\n\\nOr tap Cancel below.';\n      } else {\n        showSummary();\n      }\n      break;\n    }\n\n    case 'WAITING_FOR_ADDRESS': {\n      const addr = String(msg.text).trim();\n      if (addr.length < 8) { reply = 'That address looks too short. Please type your full delivery address.'; break; }\n      draft.address = addr;\n      showSummary();\n      break;\n    }\n\n    case 'WAITING_FOR_ORDER_CONFIRMATION': {\n      if (['1', 'confirm', 'yes', 'y'].includes(t)) {\n        const b = buildOrder(draft);\n        if (!b.ok) { goMain(b.message); break; }\n        const missing = !draft.name || !draft.phone || !draft.orderType || (draft.orderType === 'Delivery' && !draft.address);\n        if (missing) { goMain('Sorry, some of your details were missing. Please start again.'); break; }\n        const item = b.lines.find(l => l.kind === 'item');\n        const drink = b.lines.find(l => l.kind === 'drink');\n        order = {\n          items: item.name,\n          quantity: item.qty,\n          extras: b.lines.filter(l => l.kind === 'extra').map(l => l.name).join(', '),\n          drinks: drink ? (drink.qty + ' × ' + drink.name) : '',\n          total: b.total,\n          orderType: draft.orderType,\n          name: draft.name,\n          phone: draft.phone,\n          address: draft.orderType === 'Delivery' ? draft.address : ''\n        };\n        action = 'place_order';   // session is reset AFTER the order is safely saved\n      } else if (['2', 'cancel', 'no', 'n'].includes(t)) {\n        goMain('❌ Your order has been cancelled.');\n      } else {\n        invalid('Reply <b>1</b> to confirm or <b>2</b> to cancel.');\n      }\n      break;\n    }\n\n    default:\n      goMain();   // unknown/missing state -> start fresh\n  }\n}\n\n// ---------- BUTTONS ----------\n// Each button carries \"<state>|<value>\". Tapping it is treated exactly like typing <value>.\nfunction buildButtons() {\n  if (action !== 'reply' || stale) return [];\n  const mk = (text, val) => ({ text: text, data: state + '|' + val });\n  const cancel = mk('❌ Cancel', 'cancel');\n  const nums = arr => arr.map(n => mk(String(n), String(n)));\n  switch (state) {\n    case 'MAIN_MENU':\n      if (kb === 'after') return [mk('🛒 Place an Order', '2'), mk('🏠 Main Menu', 'hi')];\n      return [mk('🍽 View Menu & Prices', '1'), mk('🛒 Place an Order', '2'), mk('📦 Check My Order', '3'),\n              mk('🚚 Delivery Information', '4'), mk('👤 Speak to Someone', '5')];\n    case 'WAITING_FOR_DELIVERY_CHOICE': return [mk('✅ Yes, place an order', '1'), mk('No, main menu', '2')];\n    case 'WAITING_FOR_ORDER_ID':        return [cancel];\n    case 'WAITING_FOR_PRODUCT':\n      return products.slice(0, 5).map((p, i) => mk(p['Product'], String(i + 1))).concat([cancel]);\n    case 'WAITING_FOR_QUANTITY':        return nums([1, 2, 3, 4, 5]).concat([cancel]);\n    case 'WAITING_FOR_EXTRA':\n      return extras.slice(0, 4).map((e, i) => mk(e['Product'], String(i + 1)))\n        .concat([mk('No extras', String(extras.length + 1)), cancel]);\n    case 'WAITING_FOR_DRINK':           return [mk('None', '0')].concat(nums([1, 2, 3])).concat([cancel]);\n    case 'WAITING_FOR_ORDER_TYPE':      return [mk('🚚 Delivery', '1'), mk('🏃 Pickup', '2'), cancel];\n    case 'WAITING_FOR_NAME':\n    case 'WAITING_FOR_PHONE':\n    case 'WAITING_FOR_ADDRESS':         return [cancel];\n    case 'WAITING_FOR_ORDER_CONFIRMATION': return [mk('✅ Confirm', '1'), mk('❌ Cancel', '2')];\n    default: return [];\n  }\n}\nconst buttons = buildButtons();\n\nreturn [{ json: {\n  chatId: msg.chatId, userId: msg.userId, username: msg.username, firstName: msg.firstName,\n  action: action, reply: reply, state: state, draft: draft, order: order, lookupId: lookupId, buttons: buttons\n} }];"
+      },
+      "id": "414a9095-ad6b-4e3a-8af2-99e80287fda5",
+      "name": "Process Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sessions",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Telegram User ID": "={{ $json.userId }}",
+            "State": "={{ $json.state }}",
+            "Draft Order": "={{ JSON.stringify($json.draft) }}",
+            "Updated At": "={{ $now.setZone('Africa/Lagos').toFormat('yyyy-MM-dd HH:mm:ss') }}"
+          },
+          "matchingColumns": [
+            "Telegram User ID"
+          ],
+          "schema": [
+            {
+              "id": "Telegram User ID",
+              "displayName": "Telegram User ID",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft Order",
+              "displayName": "Draft Order",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Updated At",
+              "displayName": "Updated At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "9e187eed-86bd-425f-8adb-60003c619512",
+      "name": "Save Session",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1320,
+        300
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f8f8ad37-0955-4ff8-9349-281d6af61790",
+                    "leftValue": "={{ $('Process Message').first().json.action }}",
+                    "rightValue": "reply",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Just reply"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "23f7324d-9fb3-4046-9803-37416bf4285f",
+                    "leftValue": "={{ $('Process Message').first().json.action }}",
+                    "rightValue": "lookup_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Check order"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "65d2812e-28b4-4988-bfe4-0a76a0782286",
+                    "leftValue": "={{ $('Process Message').first().json.action }}",
+                    "rightValue": "place_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Place order"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1fac76a7-de46-4908-aec1-57fead4dd6d7",
+      "name": "Route Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "02cbad06-ca07-4371-a5a9-9533d66bbc54",
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -520
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6a0a6533-fc77-4242-921d-e01aabec5c75",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No buttons"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9c772d78-d18a-464d-b89c-b29fbc20d14a",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "1 button"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bb377360-5b66-4955-ba9d-1b49e88bc232",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 2,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "2 buttons"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "834a717f-ca82-40b3-a384-315d8a44b22f",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "3 buttons"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3ca73a8f-a054-4670-a39c-05dd6017100f",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "4 buttons"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "88d8362b-55e6-4663-b0b0-6b9b80b2719a",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 5,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "5 buttons"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0cd31071-5ae0-447f-90e9-011b382a5c75",
+                    "leftValue": "={{ $('Process Message').first().json.buttons.length }}",
+                    "rightValue": 6,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "6 buttons"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8d382b94-6a6e-41e3-9a0d-92844abf1235",
+      "name": "Keyboard Size",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1760,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[0].data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "44d85a80-3c4d-4326-bb0d-9786e98ed477",
+      "name": "Send Reply + 1 button",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -420
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[0].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[1].data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "f86ce1fa-8787-4cf8-988e-e25af0037723",
+      "name": "Send Reply + 2 buttons",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -320
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[0].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[1].data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[2].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[2].data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "e510920f-9e35-430a-be7a-d71240723abb",
+      "name": "Send Reply + 3 buttons",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -220
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[0].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[1].data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[2].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[2].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[3].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[3].data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "ee47d877-e1ab-49e3-9324-c1a28783ad4b",
+      "name": "Send Reply + 4 buttons",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -120
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[0].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[1].data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[2].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[2].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[3].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[3].data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[4].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[4].data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "bc42dae3-bfd9-4ccb-9bda-0e5846d27992",
+      "name": "Send Reply + 5 buttons",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        -20
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.reply }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[0].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[1].data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[2].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[2].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[3].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[3].data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[4].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[4].data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $('Process Message').first().json.buttons[5].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $('Process Message').first().json.buttons[5].data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "af3c6b98-b2e3-4c7d-80e5-87d6f08231da",
+      "name": "Send Reply + 6 buttons",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2000,
+        80
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "61901634-8d80-41b3-90eb-d74f0aee1c7e",
+              "leftValue": "={{ $json.callbackId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "92ffe43d-42ea-4a98-9aa4-bce7fe082512",
+      "name": "Is Button Tap",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "operation": "answerQuery",
+        "queryId": "={{ $json.callbackId }}",
+        "additionalFields": {}
+      },
+      "id": "45f6150b-a2a7-42be-85dd-b872748ee8a7",
+      "name": "Answer Button Tap",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        60
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "769a177d-d41f-4399-8f14-93d1b8f1afc5",
+      "name": "Read Order By ID",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1780,
+        300
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Process Message').first().json;\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst money = n => '₦' + Number(n).toLocaleString('en-US');\n\n// Customers can only see their own orders\nconst row = $input.all().map(i => i.json).find(r =>\n  r['Order ID'] &&\n  String(r['Order ID']).toUpperCase() === p.lookupId &&\n  String(r['Telegram User ID']) === String(p.userId)\n);\n\nlet reply;\nif (!row) {\n  reply = \"Sorry, I couldn't find that order. 😔\\nPlease check your Order ID and try again.\\n\\nReply <b>3</b> to try again, or type <b>hi</b> for the main menu.\";\n} else {\n  const icons = { 'received': '📥', 'preparing': '👨‍🍳', 'out for delivery': '🛵', 'ready for pickup': '✅', 'completed': '🎉', 'cancelled': '❌' };\n  const status = String(row['Order Status'] || 'Received');\n  const icon = icons[status.toLowerCase()] || '📦';\n  reply = '📦 <b>ORDER ' + esc(row['Order ID']) + '</b>\\n\\nCustomer: ' + esc(row['Customer Name']) + '\\n\\nItems:\\n' +\n    esc(row['Quantity']) + ' × ' + esc(row['Items']);\n  if (row['Extras']) reply += '\\nExtras: ' + esc(row['Extras']);\n  if (row['Drinks']) reply += '\\nDrinks: ' + esc(row['Drinks']);\n  reply += '\\n\\nTotal: ' + money(row['Total']) + '\\nStatus: ' + icon + ' <b>' + esc(status) + '</b>';\n}\nreturn [{ json: { chatId: p.chatId, reply: reply } }];"
+      },
+      "id": "0ef85fd6-a511-4275-b58e-cff5884fdeca",
+      "name": "Format Order Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.reply }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "ccb470c8-ad91-4436-aced-34363cdb1c27",
+      "name": "Send Order Status",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2220,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "4079fa4f-10ba-40d8-99d3-1898fb75c4cc",
+      "name": "Read Orders For New ID",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1780,
+        520
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Process Message').first().json;\nconst o = p.order;\nconst rows = $input.all().map(i => i.json).filter(r => r['Order ID']);\n\n// Next Order ID = highest existing number + 1 (first order is ORD-1001)\nlet max = 1000;\nrows.forEach(r => {\n  const n = parseInt(String(r['Order ID']).replace(/\\D/g, ''), 10);\n  if (!isNaN(n) && n > max) max = n;\n});\nconst orderId = 'ORD-' + (max + 1);\nconst now = new Date().toLocaleString('sv-SE', { timeZone: 'Africa/Lagos' });   // 2026-10-08 14:30:00\n\nreturn [{ json: {\n  'Order ID': orderId,\n  'Telegram User ID': p.userId,\n  'Telegram Username': p.username,\n  'Customer Name': o.name,\n  'Phone': o.phone,\n  'Items': o.items,\n  'Quantity': o.quantity,\n  'Extras': o.extras,\n  'Drinks': o.drinks,\n  'Total': o.total,\n  'Order Type': o.orderType,\n  'Delivery Address': o.address,\n  'Payment Status': 'Unpaid',\n  'Order Status': 'Received',\n  'Created At': now,\n  'Updated At': now\n} }];"
+      },
+      "id": "9771c97e-5780-4f02-97f2-d79835e523cf",
+      "name": "Build Order Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telegram User ID",
+              "displayName": "Telegram User ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telegram Username",
+              "displayName": "Telegram Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Items",
+              "displayName": "Items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Extras",
+              "displayName": "Extras",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drinks",
+              "displayName": "Drinks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order Type",
+              "displayName": "Order Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delivery Address",
+              "displayName": "Delivery Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment Status",
+              "displayName": "Payment Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order Status",
+              "displayName": "Order Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Updated At",
+              "displayName": "Updated At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "150890ad-75d7-4783-b531-f2e39270c77c",
+      "name": "Append Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2220,
+        520
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Customers",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "0e4d970f-139d-4829-9133-655707309675",
+      "name": "Read Customer",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2440,
+        520
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Process Message').first().json;\nconst o = p.order;\nconst existing = $input.all().map(i => i.json).find(r => r['Telegram User ID'] && String(r['Telegram User ID']) === String(p.userId));\nconst today = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });   // 2026-10-08\n\nreturn [{ json: {\n  'Customer ID': 'CUS-' + p.userId,\n  'Telegram User ID': p.userId,\n  'Telegram Username': p.username,\n  'Name': o.name,\n  'Phone': o.phone,\n  'Address': o.orderType === 'Delivery' ? o.address : (existing ? (existing['Address'] || '') : ''),\n  'First Order Date': (existing && existing['First Order Date']) ? existing['First Order Date'] : today,\n  'Last Order Date': today,\n  'Total Orders': (existing ? (parseInt(existing['Total Orders'], 10) || 0) : 0) + 1\n} }];"
+      },
+      "id": "4651194a-cbd7-4e5c-849b-8271353c6a55",
+      "name": "Build Customer Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Customers",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Telegram User ID"
+          ],
+          "schema": [
+            {
+              "id": "Customer ID",
+              "displayName": "Customer ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telegram User ID",
+              "displayName": "Telegram User ID",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telegram Username",
+              "displayName": "Telegram Username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Order Date",
+              "displayName": "First Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Order Date",
+              "displayName": "Last Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Orders",
+              "displayName": "Total Orders",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "2773f65d-0f52-4474-abde-9cebe128d07b",
+      "name": "Upsert Customer",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2880,
+        520
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Business Config').first().json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sessions",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Telegram User ID": "={{ $('Process Message').first().json.userId }}",
+            "State": "MAIN_MENU",
+            "Draft Order": "{}",
+            "Updated At": "={{ $now.setZone('Africa/Lagos').toFormat('yyyy-MM-dd HH:mm:ss') }}"
+          },
+          "matchingColumns": [
+            "Telegram User ID"
+          ],
+          "schema": [
+            {
+              "id": "Telegram User ID",
+              "displayName": "Telegram User ID",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft Order",
+              "displayName": "Draft Order",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Updated At",
+              "displayName": "Updated At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "1595226e-4fe4-4eb5-afb7-04c3d9877ce8",
+      "name": "Reset Session",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3100,
+        520
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "=🎉 <b>Order Confirmed!</b>\n\nYour order number is:\n<b>{{ $('Build Order Record').first().json['Order ID'] }}</b>\n\nTotal: ₦{{ Number($('Build Order Record').first().json['Total']).toLocaleString('en-US') }}\nType: {{ $('Build Order Record').first().json['Order Type'] }}\nStatus: Received\n\nThank you for ordering from us! 🌯\nTo check your order any time, type <b>hi</b> and choose option 3.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "5a6eded4-a0d5-4bb8-b979-4fe8d92bf235",
+      "name": "Send Order Confirmation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3320,
+        520
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Normalize Input').first().json.chatId }}",
+        "text": "=Sorry, something went wrong on our side. 😔\nPlease try again in a moment, or type <b>hi</b> to restart.\n\nIf the problem continues, please call us: {{ $('Business Config').first().json.phone }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "50479329-8b9f-4155-8950-e07e39cfb5bd",
+      "name": "Send Error Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1780,
+        760
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "big joint"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Shawarma Telegram Bot - V1\n1. Create the Google Sheet (tabs: Menu, Orders, Customers, Sessions)\n2. Paste the Spreadsheet ID into **Business Config**\n3. Add credentials: Telegram + Google Sheets\n4. Edit phone, hours, delivery fees in **Business Config**\n5. Activate the workflow",
+        "height": 190,
+        "width": 520
+      },
+      "id": "57c48067-3ada-4aca-a343-43bbbb4ad3bb",
+      "name": "README",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "**Process Message** = conversation state machine. It decides the reply and the next state.",
+        "height": 100,
+        "width": 260
+      },
+      "id": "169c4f37-b7ea-4478-b062-d64d19e1b62b",
+      "name": "Note - Brain",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "Every Google Sheets / Code node sends failures here (red 'error' output) so customers get a friendly message instead of silence.",
+        "height": 100,
+        "width": 330
+      },
+      "id": "0644ac1a-ba98-4a72-ab79-830968de916a",
+      "name": "Note - Errors",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        700
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Business Config",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Button Tap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Business Config": {
+      "main": [
+        [
+          {
+            "node": "Read Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Session": {
+      "main": [
+        [
+          {
+            "node": "Read Menu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Menu": {
+      "main": [
+        [
+          {
+            "node": "Process Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Message": {
+      "main": [
+        [
+          {
+            "node": "Save Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Session": {
+      "main": [
+        [
+          {
+            "node": "Route Action",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [
+          {
+            "node": "Keyboard Size",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Order By ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Orders For New ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keyboard Size": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply + 1 button",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply + 2 buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply + 3 buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply + 4 buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply + 5 buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply + 6 buttons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Button Tap": {
+      "main": [
+        [
+          {
+            "node": "Answer Button Tap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Order By ID": {
+      "main": [
+        [
+          {
+            "node": "Format Order Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Order Result": {
+      "main": [
+        [
+          {
+            "node": "Send Order Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Orders For New ID": {
+      "main": [
+        [
+          {
+            "node": "Build Order Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Order Record": {
+      "main": [
+        [
+          {
+            "node": "Append Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Order": {
+      "main": [
+        [
+          {
+            "node": "Read Customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Customer": {
+      "main": [
+        [
+          {
+            "node": "Build Customer Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Customer Record": {
+      "main": [
+        [
+          {
+            "node": "Upsert Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Customer": {
+      "main": [
+        [
+          {
+            "node": "Reset Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset Session": {
+      "main": [
+        [
+          {
+            "node": "Send Order Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}
